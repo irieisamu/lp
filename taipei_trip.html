@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TAIPEI — 2 Nights / Hotel Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --concrete:#ffffff;--concrete-2:#ebeae6;--paper:#f4f3f0;--ink:#121212;--mute:#5d5a55;
+    --signal:oklch(0.64 0.2 38);--good:#2f6b3a;--mid:#8a5a12;--bad:#a3261b;
+    --line:1px solid var(--ink);
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --sans:"Archivo","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--concrete);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:2000;opacity:.08;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .mute{color:var(--mute)}
+  .jp-sub{font-family:"Noto Sans JP";font-size:13px;color:var(--mute)}
+  .g{color:var(--good);font-weight:700}.m{color:var(--mid);font-weight:600}.b{color:var(--bad);font-weight:600}
+  .sig{color:var(--signal)}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:1500;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 24px;background:var(--concrete);border-bottom:var(--line)}
+  nav .links{display:flex;gap:22px}
+  nav .links a:hover{color:var(--signal)}
+  nav .logo{font-weight:900;font-stretch:125%;font-size:18px;letter-spacing:.02em}
+  nav .right{display:flex;gap:22px;justify-content:flex-end}
+  .dot{display:inline-block;width:7px;height:7px;background:var(--signal);border-radius:50%;margin-right:8px;vertical-align:1px;animation:blink 1.6s steps(2) infinite}
+  @keyframes blink{50%{opacity:.15}}
+
+  /* HERO */
+  .hero{border-bottom:var(--line)}
+  .hero-meta{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--line)}
+  .hero-meta div{padding:12px 24px;border-right:var(--line)}
+  .hero-meta div:last-child{border-right:0;text-align:right}
+  .hero-grid{display:grid;grid-template-columns:5fr 7fr;min-height:72vh}
+  .hero-left{display:flex;flex-direction:column;justify-content:space-between;gap:32px;padding:28px 24px;border-right:var(--line)}
+  .hero-left h2{font-weight:300;font-stretch:80%;font-size:clamp(28px,3vw,46px);line-height:1.04;letter-spacing:-.01em;text-wrap:balance}
+  .hero-left h2 em{font-style:normal;font-weight:800;font-stretch:62%}
+  .hero-left p{max-width:40ch;font-family:"Noto Sans JP";font-size:14px;line-height:1.9;color:var(--mute)}
+  .hero-img{position:relative;overflow:hidden;background:var(--concrete-2)}
+  .hero-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(.25) contrast(1.05)}
+  .hero-img .tag{position:absolute;left:16px;bottom:16px;background:var(--ink);color:var(--paper);padding:6px 10px}
+  .wordmark{font-weight:900;font-stretch:125%;font-size:clamp(80px,19vw,360px);line-height:.78;letter-spacing:-.045em;padding:18px 16px 10px;border-top:var(--line);white-space:nowrap;overflow:hidden}
+  .wordmark span{color:var(--signal)}
+
+  /* MARQUEE */
+  .marquee{overflow:hidden;border-bottom:var(--line);background:var(--ink);color:var(--paper);padding:10px 0}
+  .marquee .track{display:flex;gap:48px;white-space:nowrap;animation:scroll 38s linear infinite;width:max-content}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  /* SECTION HEAD */
+  section{scroll-margin-top:52px}
+  .sec-head{display:grid;grid-template-columns:120px 1fr auto;align-items:end;gap:24px;padding:56px 24px 18px;border-bottom:var(--line)}
+  .sec-head h3{font-weight:800;font-stretch:62%;font-size:clamp(44px,6vw,96px);line-height:.85;text-transform:uppercase;letter-spacing:-.01em}
+
+  /* FLIGHT */
+  .flight{list-style:none;border-bottom:var(--line)}
+  .flight li{display:grid;grid-template-columns:120px 1.2fr 1fr 1fr auto;gap:24px;align-items:center;padding:18px 24px;border-bottom:var(--line);font-size:15px}
+  .flight li:last-child{border-bottom:0}
+  .flight li:hover{background:var(--ink);color:var(--paper)}
+  .flight .big{font-weight:800;font-stretch:75%;font-size:28px;line-height:1}
+  .flight-note{padding:12px 24px;border-bottom:var(--line);font-family:"Noto Sans JP";font-size:12px;color:var(--mute)}
+
+  /* ITINERARY */
+  .days{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:var(--line)}
+  .day{border-right:var(--line);display:flex;flex-direction:column}
+  .day:last-child{border-right:0}
+  .day-h{padding:22px 24px;border-bottom:var(--line);display:flex;flex-direction:column;gap:8px;min-height:150px}
+  .day-h h4{font-weight:800;font-stretch:62%;font-size:36px;line-height:.92;text-transform:uppercase}
+  .day ol{list-style:none}
+  .day li{display:grid;grid-template-columns:56px 1fr;gap:12px;padding:14px 24px;border-bottom:1px solid rgba(18,18,18,.25);font-family:"Noto Sans JP";font-size:14px;line-height:1.6}
+  .day li:last-child{border-bottom:0}
+  .day li .t{padding-top:3px}
+  .day li small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+  .statement{display:grid;grid-template-columns:120px 1fr 1fr;gap:24px;padding:40px 24px 56px;border-bottom:var(--line)}
+  .statement .big{font-size:clamp(20px,2vw,30px);line-height:1.3;font-weight:400;font-stretch:90%;text-wrap:pretty}
+  .statement .jp{font-family:"Noto Sans JP";font-size:14px;line-height:2;color:var(--mute);max-width:44ch}
+
+  /* MAP */
+  #overview{height:560px;border-bottom:var(--line);filter:grayscale(.35) contrast(1.05)}
+  .leaflet-container{background:var(--concrete-2);font-family:var(--mono)}
+  .pin{display:grid;place-items:center;width:30px;height:30px;background:var(--ink);color:var(--paper);font:700 12px var(--mono);border:2px solid var(--paper)}
+  .pin.best{background:var(--signal)}
+  .legend{display:flex;flex-wrap:wrap;gap:24px;padding:12px 24px;border-bottom:var(--line)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
+
+  /* TABLE */
+  .tbl{overflow-x:auto;border-bottom:var(--line)}
+  table{border-collapse:collapse;width:100%;min-width:980px;font-size:14px}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;text-align:left;padding:12px 14px;border-bottom:var(--line);vertical-align:bottom}
+  th .mute{font-family:"Noto Sans JP";text-transform:none;letter-spacing:0;font-size:10.5px}
+  td{padding:14px;border-bottom:1px solid rgba(18,18,18,.25);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:var(--ink);color:var(--paper)}
+  tbody tr:hover .mute{color:#aaa}
+  tbody tr:hover .g,tbody tr:hover .m,tbody tr:hover .b{color:var(--signal)}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td .mute{font-family:"Noto Sans JP";font-size:12px}
+  .tbl-note{padding:12px 24px;font-family:"Noto Sans JP";font-size:12px;color:var(--mute);border-bottom:var(--line)}
+
+  /* PICKS */
+  .materials{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--line)}
+  .mat{padding:24px;border-right:var(--line);display:flex;flex-direction:column;gap:10px}
+  .mat:last-child{border-right:0}
+  .mat h4{font-weight:800;font-stretch:62%;font-size:48px;text-transform:uppercase;line-height:.9;margin-top:24px}
+  .mat ol{list-style:none;margin-top:12px;border-top:var(--line);counter-reset:k}
+  .mat li{padding:12px 0;border-bottom:1px solid rgba(18,18,18,.25);font-family:"Noto Sans JP";counter-increment:k}
+  .mat li a{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+  .mat li a b::before{content:counter(k,decimal-leading-zero) "  ";font-family:var(--mono);font-size:11px;color:var(--signal)}
+  .mat li a:hover b{color:var(--signal)}
+  .mat li small{display:block;font-size:12px;color:var(--mute);line-height:1.7;margin-top:4px}
+  .pp{text-align:right;white-space:nowrap;font-size:10.5px}
+  .verdict{display:grid;grid-template-columns:120px 1fr;gap:24px;padding:28px 24px;border-bottom:var(--line);background:var(--ink);color:var(--paper)}
+  .verdict p{font-weight:300;font-stretch:85%;font-size:clamp(20px,2.2vw,32px);line-height:1.35}
+  .verdict p b{font-weight:800;color:var(--signal)}
+  .verdict small{display:block;font-family:"Noto Sans JP";font-size:13px;line-height:1.9;color:#aaa;margin-top:12px;max-width:70ch}
+
+  /* HOTEL */
+  .hotel{border-bottom:var(--line)}
+  .h-head{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:end;padding:40px 24px 18px;border-bottom:var(--line)}
+  .h-num{font-weight:900;font-stretch:125%;font-size:clamp(64px,8vw,120px);line-height:.78;letter-spacing:-.04em;color:var(--concrete-2);-webkit-text-stroke:1px var(--ink)}
+  .h-head h3{font-weight:800;font-stretch:62%;font-size:clamp(36px,4.6vw,72px);line-height:.88;text-transform:uppercase;margin-top:8px}
+  .jp-name{font-family:"Noto Sans JP";font-size:14px;color:var(--mute);margin-top:6px}
+  .base{display:inline-block;margin-left:12px;background:var(--signal);color:var(--ink);padding:3px 8px}
+  .h-price{text-align:right;display:flex;flex-direction:column;gap:4px}
+  .h-price b{font-weight:800;font-stretch:75%;font-size:clamp(32px,3.4vw,52px);line-height:.9}
+  .h-price .mono:last-child{color:var(--signal);font-size:12px;font-weight:500}
+  .h-body{display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--line)}
+  .h-info{padding:24px;border-right:var(--line);display:flex;flex-direction:column;gap:22px}
+  dl{display:grid;grid-template-columns:110px 1fr;gap:10px 18px;font-family:"Noto Sans JP";font-size:14px;line-height:1.6}
+  dt{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding-top:3px}
+  dd .mute,dd.mute{font-size:12.5px}
+  .scores{display:flex;gap:24px;flex-wrap:wrap;border-top:var(--line);padding-top:16px}
+  .scores>div{display:flex;align-items:center;gap:8px}
+  .bar{display:inline-flex;gap:2px}.bar i{width:14px;height:8px;border:1px solid var(--ink)}.bar i.on{background:var(--ink)}
+  .pc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .pc ul{list-style:none;margin-top:8px;font-family:"Noto Sans JP";font-size:13px;line-height:1.7}
+  .pc li{padding:6px 0;border-top:1px solid rgba(18,18,18,.25)}
+  .cta{align-self:flex-start;border:var(--line);padding:12px 18px;transition:background .2s}
+  .cta:hover{background:var(--ink);color:var(--paper)}
+  .h-map{display:flex;flex-direction:column}
+  .h-map iframe{flex:1;min-height:320px;width:100%;border:0;border-bottom:var(--line);filter:grayscale(.3)}
+  .access{list-style:none;display:grid;grid-template-columns:repeat(3,1fr)}
+  .access li{display:flex;justify-content:space-between;gap:8px;padding:10px 14px;border-right:1px solid rgba(18,18,18,.25);border-bottom:1px solid rgba(18,18,18,.25);font-family:var(--mono);font-size:12px}
+  .access li:nth-child(3n){border-right:0}
+  .access li:nth-last-child(-n+3){border-bottom:0}
+  .looks{display:grid;grid-template-columns:repeat(var(--n,6),1fr)}
+  .look{border-right:var(--line);cursor:zoom-in;display:flex;flex-direction:column}
+  .look:nth-child(6){border-right:0}
+  .look .frame{aspect-ratio:3/4;overflow:hidden;background:var(--concrete-2)}
+  .look img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.2);transition:transform .5s,filter .3s}
+  .look:hover img{transform:scale(1.04);filter:none}
+  .look .cap{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-top:var(--line);background:var(--concrete);font-size:10px}
+  .look .cap span:last-child{font-family:"Noto Sans JP";text-transform:none;letter-spacing:0;font-size:12px}
+  .look:hover .cap{background:var(--ink);color:var(--paper)}
+
+  footer{display:grid;grid-template-columns:repeat(4,1fr);padding:18px 24px 28px;gap:24px}
+  footer .col{display:flex;flex-direction:column;gap:6px}
+  footer .fin{grid-column:1/-1;font-weight:900;font-stretch:125%;font-size:clamp(40px,9vw,160px);letter-spacing:-.04em;line-height:.8;padding-top:40px;color:var(--concrete-2);-webkit-text-stroke:1px var(--ink)}
+
+  /* LIGHTBOX */
+  .lb{position:fixed;inset:0;z-index:3000;background:rgba(18,18,18,.95);color:var(--paper);display:none;grid-template-columns:1fr 360px}
+  .lb.on{display:grid}
+  .lb .pic{display:grid;place-items:center;padding:40px;cursor:e-resize}
+  .lb .pic img{max-height:84vh;max-width:100%;object-fit:contain}
+  .lb .info{border-left:1px solid #444;padding:28px 24px;display:flex;flex-direction:column;gap:16px}
+  .lb .info h5{font-weight:800;font-stretch:62%;font-size:72px;line-height:.9}
+  .lb .info .nm{font-size:22px;font-weight:600;font-stretch:80%;text-transform:uppercase}
+  .lb .info dl{grid-template-columns:auto 1fr;font-size:14px}
+  .lb .info dt{color:#999}
+  .lb .ctrl{margin-top:auto;display:flex;gap:10px}
+  .lb .ctrl button{flex:1;background:transparent;border:1px solid #666;color:var(--paper);padding:14px;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+  .lb .ctrl button:hover{border-color:var(--signal);color:var(--signal)}
+
+  @media (max-width:900px){
+    nav{grid-template-columns:1fr auto;padding:12px 16px}nav .links{display:none}
+    .hero-meta{grid-template-columns:1fr 1fr}.hero-meta div{padding:10px 16px}.hero-meta div:nth-child(2){border-right:0}.hero-meta div:nth-child(-n+2){border-bottom:var(--line)}
+    .hero-meta div:last-child{text-align:left}
+    .hero-grid{grid-template-columns:1fr}.hero-left{border-right:0;border-bottom:var(--line);padding:24px 16px}.hero-img{min-height:56vh}
+    .sec-head,.statement,.verdict{grid-template-columns:1fr;padding-left:16px;padding-right:16px}
+    .sec-head{gap:8px;padding-top:44px}
+    .flight li{grid-template-columns:1fr 1fr;gap:6px 16px;padding:16px}
+    .days{grid-template-columns:1fr}.day{border-right:0;border-bottom:var(--line)}.day:last-child{border-bottom:0}.day-h{min-height:0;padding:20px 16px}.day li{padding:12px 16px}
+    .materials{grid-template-columns:1fr}.mat{border-right:0;border-bottom:var(--line);padding:20px 16px}.mat:last-child{border-bottom:0}
+    .h-head{grid-template-columns:auto 1fr;padding:32px 16px 16px}.h-price{grid-column:1/-1;text-align:left}
+    .h-body{grid-template-columns:1fr}.h-info{border-right:0;border-bottom:var(--line);padding:20px 16px}
+    dl{grid-template-columns:84px 1fr}
+    .pc{grid-template-columns:1fr}
+    .access{grid-template-columns:1fr 1fr}.access li:nth-child(3n){border-right:1px solid rgba(18,18,18,.25)}.access li:nth-child(2n){border-right:0}.access li:nth-last-child(-n+3){border-bottom:1px solid rgba(18,18,18,.25)}.access li:nth-last-child(-n+2){border-bottom:0}
+    .looks{grid-template-columns:1fr 1fr}.look{border-bottom:var(--line)}.look:nth-child(2n){border-right:0}
+    #overview{height:440px}
+    .legend,.tbl-note,.flight-note{padding-left:16px;padding-right:16px}
+    footer{grid-template-columns:1fr 1fr;padding:18px 16px 28px}
+    .lb{grid-template-columns:1fr;grid-template-rows:1fr auto}.lb .pic{padding:16px}.lb .info{border-left:0;border-top:1px solid #444;padding:16px}.lb .info h5{font-size:40px}.lb .info dl{display:none}
+  }
+
+  /* WISHLIST */
+  .wishes{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:var(--line)}
+  .wish{padding:22px 24px 26px;border-right:var(--line);border-bottom:var(--line);display:flex;flex-direction:column;gap:8px}
+  .wish:nth-child(4n){border-right:0}
+  .wish:nth-last-child(-n+4){border-bottom:0}
+  .wish:last-child{background:var(--ink);color:var(--paper)}.wish:last-child p,.wish:last-child .w-jp{color:#bbb}.wish:last-child .w-where{border-top-color:var(--paper)}.wish:last-child .w-where .mono{color:var(--paper)}
+  .w-ic{font-size:30px;line-height:1}
+  .wish h4{font-weight:800;font-stretch:62%;font-size:40px;line-height:.9;text-transform:uppercase;margin-top:6px}
+  .w-jp{font-family:"Noto Sans JP";font-size:13px;color:var(--mute)}
+  .w-where{display:flex;flex-direction:column;gap:2px;border-top:var(--line);padding-top:10px;margin-top:6px;font-family:"Noto Sans JP"}
+  .w-where b{font-size:15px}
+  .wish p{font-family:"Noto Sans JP";font-size:12.5px;line-height:1.8;color:var(--mute)}
+  .wish .mono{color:var(--signal)}
+  .wish .w-where .mono{color:var(--ink)}
+  @media (max-width:900px){.wishes{grid-template-columns:1fr 1fr}.wish{padding:18px 16px;border-right:var(--line)!important;border-bottom:var(--line)!important}.wish:nth-child(2n){border-right:0!important}.wish h4{font-size:30px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="links mono">
+    <a href="#flight">Flight</a><a href="#map">Map</a><a href="#compare">Compare</a><a href="#picks">Picks</a><a href="#hotels">Hotels</a>
+  </div>
+  <a href="#" class="logo">TAIPEI</a>
+  <div class="right mono"><a href="#wish">Wishlist</a><a href="#plan">Itinerary</a><span><span class="dot"></span>11.08 — 11.10</span></div>
+</nav>
+
+<header class="hero">
+  <div class="hero-meta mono">
+    <div>Trip — 2 Nights / 3 Days</div>
+    <div>NRT ⇄ TPE / GK · MM</div>
+    <div>2 Pax — Twin Room</div>
+    <div>7 Stays Compared</div>
+  </div>
+  <div class="hero-grid">
+    <div class="hero-left">
+      <span class="mono">(01) — Introduction</span>
+      <h2>Two nights in <em>Taipei,</em> between night markets and mountain lanterns.</h2>
+      <p>男2人・ツイン1室で行く台北2泊3日。台北101、九份、永康街、阜杭豆漿、龍山寺を回る旅程と、候補ホテル7軒の立地・価格・部屋を比較。料金は2026年9月27日時点の各サイト表示（税・サ込）です。</p>
+      <a href="#compare" class="mono" style="border-bottom:1px solid;align-self:flex-start;padding-bottom:3px">Compare Hotels →</a>
+    </div>
+    <div class="hero-img">
+      <img src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/a80b08ee86aad7b203f5b00baefb681ec1a7f6d1.47.9.26.3.jpg" alt="三井ガーデンホテル台北忠孝 外観">
+      <span class="tag mono">Our Pick — Mitsui Garden Zhongxiao</span>
+    </div>
+  </div>
+  <div class="wordmark">TAIPEI<span>.</span></div>
+</header>
+
+<div class="marquee mono"><div class="track"><span>Mango Ice</span><span class="sig">✦</span><span>小籠包</span><span class="sig">✦</span><span>Pineapple Cake</span><span class="sig">✦</span><span>魯肉飯</span><span class="sig">✦</span><span>Sky Lantern</span><span class="sig">✦</span><span>十分</span><span class="sig">✦</span><span>Jiufen</span><span class="sig">✦</span><span>夜市</span><span class="sig">✦</span><span>Taipei 101</span><span class="sig">✦</span><span>NRT ⇄ TPE</span><span class="sig">✦</span><span>Mango Ice</span><span class="sig">✦</span><span>小籠包</span><span class="sig">✦</span><span>Pineapple Cake</span><span class="sig">✦</span><span>魯肉飯</span><span class="sig">✦</span><span>Sky Lantern</span><span class="sig">✦</span><span>十分</span><span class="sig">✦</span><span>Jiufen</span><span class="sig">✦</span><span>夜市</span><span class="sig">✦</span><span>Taipei 101</span><span class="sig">✦</span><span>NRT ⇄ TPE</span><span class="sig">✦</span></div></div>
+
+<!-- FLIGHT -->
+<section id="flight">
+  <div class="sec-head"><span class="mono">(02)</span><h3>Flight</h3><span class="mono">Jetstar Japan / Peach</span></div>
+  <ul class="flight">
+    <li><span class="mono">Out — 11.08 Sun</span><span>ジェットスター・ジャパン</span><span class="big">NRT 8:30</span><span class="big">→ TPE 11:50</span><span class="mono">4h20m</span></li>
+    <li><span class="mono">In — 11.10 Tue</span><span>ピーチ</span><span class="big">TPE 17:10</span><span class="big">→ NRT 21:25</span><span class="mono">3h15m</span></li>
+  </ul>
+  <div class="flight-note">表示価格 ¥33,484（1人分か2人分か、受託手荷物込みかは予約画面で要確認）。台湾は日本より1時間遅れ。</div>
+</section>
+
+<!-- MAP -->
+<section id="map">
+  <div class="sec-head"><span class="mono">(03)</span><h3>Map</h3><span class="mono">Hotels × Spots</span></div>
+  <div id="overview"></div>
+  <div class="legend mono">
+    <span><span class="pin" style="display:inline-grid;width:18px;height:18px;font-size:9px;vertical-align:-4px;margin-right:6px">1</span>Hotel</span>
+    <span><i style="background:#2563eb"></i>Day 01</span><span><i style="background:oklch(0.64 0.2 38)"></i>Day 02</span><span><i style="background:#7c3aed"></i>Day 03</span><span><i style="background:#555"></i>Transit</span>
+    <span class="mute">Shifen / Jiufen — 30〜40km east, off map</span>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section id="compare">
+  <div class="sec-head"><span class="mono">(04)</span><h3>Compare</h3><span class="mono">2 Pax / 1 Pax — 2 Nights</span></div>
+  <div class="tbl"><table>
+    <thead><tr><th>No.</th><th>Hotel</th><th class="n">Room Only<br><span class="mute">素泊まり</span></th><th class="n">W/ Breakfast<br><span class="mute">朝食付</span></th><th>Twin</th><th class="n">Taipei Main<br><span class="mute">台北駅（空港MRT）</span></th><th class="n">Taipei 101<br><span class="mute">台北101</span></th><th class="n">Yongkang<br><span class="mute">永康街・中正紀念堂</span></th><th class="n">Zhongxiao Fuxing<br><span class="mute">忠孝復興（九份バス）</span></th><th class="n">Ximen<br><span class="mute">西門・龍山寺</span></th><th class="n">Dihua<br><span class="mute">迪化街・寧夏夜市</span></th></tr></thead>
+    <tbody><tr><td class="mono">01</td><td><a href="#mitsui"><b>Mitsui Garden Zhongxiao</b><br><span class="mute">三井ガーデンホテル台北忠孝</span></a></td><td class="n"><b>¥58,248</b><br><span class="mute mono">1P ¥29,124</span></td><td class="n"><b>¥67,864</b><br><span class="mute mono">1P ¥33,932</span></td><td class="mono">約30㎡</td><td class="n g">10</td><td class="n m">18</td><td class="n g">8</td><td class="n g">5</td><td class="n g">15</td><td class="n m">20</td></tr><tr><td class="mono">02</td><td><a href="#rseasons"><b>Royal Seasons Nanjing W.</b><br><span class="mute">ロイヤルシーズンズホテル台北 南西館</span></a></td><td class="n"><b>¥25,363</b><br><span class="mute mono">1P ¥12,682</span></td><td class="n"><span class="mute">追加可</span></td><td class="mono">30㎡</td><td class="n g">15</td><td class="n b">30</td><td class="n b">25</td><td class="n b">25</td><td class="n g">15</td><td class="n g">3</td></tr><tr><td class="mono">03</td><td><a href="#royalinn"><b>Royal Inn Linsen</b><br><span class="mute">ロイヤルイン台北林森</span></a></td><td class="n"><b>¥29,972</b><br><span class="mute mono">1P ¥14,986</span></td><td class="n"><b>¥30,970</b><br><span class="mute mono">1P ¥15,485</span></td><td class="mono">約27㎡</td><td class="n g">12</td><td class="n b">25</td><td class="n m">20</td><td class="n g">15</td><td class="n m">18</td><td class="n g">15</td></tr><tr><td class="mono">04</td><td><a href="#solaria"><b>Solaria Nishitetsu Ximen</b><br><span class="mute">ソラリア西鉄ホテル台北西門</span></a></td><td class="n"><span class="mute">—</span></td><td class="n"><b>¥47,876</b><br><span class="mute mono">1P ¥23,938</span></td><td class="mono">21㎡</td><td class="n g">10</td><td class="n b">25</td><td class="n g">15</td><td class="n m">20</td><td class="n g">5</td><td class="n m">20</td></tr><tr><td class="mono">05</td><td><a href="#park"><b>Park Taipei</b><br><span class="mute">パークタイペイホテル</span></a></td><td class="n"><b>¥49,372</b><br><span class="mute mono">1P ¥24,686</span></td><td class="n"><span class="mute">—</span></td><td class="mono">約32㎡</td><td class="n g">15</td><td class="n g">8</td><td class="n g">12</td><td class="n g">5</td><td class="n b">25</td><td class="n b">25</td></tr><tr><td class="mono">06</td><td><a href="#b7"><b>Hotel B7 Journey</b><br><span class="mute">ビューティーホテルズ台北 B7ジャーニー</span></a></td><td class="n"><b>¥24,615</b><br><span class="mute mono">1P ¥12,308</span></td><td class="n"><span class="mute">追加可</span></td><td class="mono">13㎡</td><td class="n g">7</td><td class="n m">20</td><td class="n g">12</td><td class="n g">15</td><td class="n g">10</td><td class="n m">20</td></tr><tr><td class="mono">07</td><td><a href="#airbnb"><b>Airbnb Ximen</b><br><span class="mute">Airbnb（参考）西門・シングルベッド2台の部屋</span></a></td><td class="n"><b>¥14,872</b><br><span class="mute mono">1P ¥7,436</span></td><td class="n"><span class="mute">—</span></td><td class="mono">—</td><td class="n g">12</td><td class="n b">25</td><td class="n g">15</td><td class="n m">20</td><td class="n g">5</td><td class="n m">20</td></tr></tbody>
+  </table></div>
+  <div class="tbl-note">上段＝1室2泊（2人分）、下段 1P＝1人あたり2泊。移動時間は徒歩＋MRTのドアtoドア目安（分）。<span class="g">緑</span>＝15分以内／<span class="m">橙</span>＝16〜24分／<span class="b">赤</span>＝25分以上。</div>
+</section>
+
+<!-- PICKS -->
+<section id="picks">
+  <div class="sec-head"><span class="mono">(05)</span><h3>Picks</h3><span class="mono">By Priority</span></div>
+  <div class="materials"><div class="mat"><span class="mono">P—01</span><h4>Comfort</h4><span class="jp-sub">綺麗さ・快適さ重視</span><ol><li><a href="#mitsui"><b>三井ガーデン忠孝</b><span class="pp mono">2P ¥58,248<br>1P ¥29,124</span></a><small>評価4.76で候補中トップクラス。大浴場＆ラウンジ付き、ツイン約30㎡、ベッド幅123cm。</small></li><li><a href="#park"><b>パークタイペイ</b><span class="pp mono">2P ¥49,372<br>1P ¥24,686</span></a><small>ツイン約32㎡・全室バスタブで一番ゆったり。素泊まりのみ。</small></li><li><a href="#solaria"><b>ソラリア西鉄 西門</b><span class="pp mono">2P ¥47,876 · 朝食込<br>1P ¥23,938</span></a><small>日系で清潔感◎、評価4.79。シャワーツインは21㎡と少し狭め。</small></li></ol></div><div class="mat"><span class="mono">P—02</span><h4>Budget</h4><span class="jp-sub">安さ重視</span><ol><li><a href="#rseasons"><b>ロイヤルシーズンズ南西館</b><span class="pp mono">2P ¥25,363<br>1P ¥12,682</span></a><small>安さと広さ（30㎡）を両立した一番のコスパ。駅まで徒歩10分が弱点。</small></li><li><a href="#royalinn"><b>ロイヤルイン林森</b><span class="pp mono">2P ¥30,970 · 朝食込<br>1P ¥15,485</span></a><small>朝食込みで考えると実質最安。24時間日本語対応。</small></li><li><a href="#b7"><b>B7ジャーニー</b><span class="pp mono">2P ¥24,615<br>1P ¥12,308</span></a><small>台北駅から徒歩7分で安いが、ツイン13㎡。</small></li><li><a href="#airbnb"><b>Airbnb（西門）</b><span class="pp mono">2P ¥14,872<br>1P ¥7,436</span></a><small>最安だが、無許可物件のリスク・フロントなし。</small></li></ol></div><div class="mat"><span class="mono">P—03</span><h4>Transit</h4><span class="jp-sub">移動のラクさ重視</span><ol><li><a href="#mitsui"><b>三井ガーデン忠孝</b></a><small>駅30秒・2路線。九份バス乗り場と永康街へそれぞれ1駅。</small></li><li><a href="#b7"><b>B7ジャーニー</b></a><small>空港MRTの台北駅まで徒歩7分。荷物移動がラク。</small></li><li><a href="#park"><b>パークタイペイ</b></a><small>駅10秒。台北101まで2駅。</small></li></ol></div><div class="mat"><span class="mono">P—04</span><h4>Other</h4><span class="jp-sub">その他の選び方</span><ol><li><a href="#rseasons"><b>夜市・食べ歩き派</b></a><small>ロイヤルシーズンズ — 寧夏夜市・迪化街まで徒歩3分。</small></li><li><a href="#solaria"><b>朝食込みで楽したい</b></a><small>ソラリア／ロイヤルイン — 朝食付プランが基本。</small></li><li><a href="#royalinn"><b>日本語で安心</b></a><small>ロイヤルイン／ソラリア／三井 — 日系 or 日本語スタッフ常駐。</small></li><li><a href="#park"><b>夜景・101</b></a><small>パークタイペイ — 101ビューツインあり。</small></li></ol></div></div>
+  <div class="verdict">
+    <span class="mono">Verdict</span>
+    <div><p>Our base: <b>Mitsui Garden Zhongxiao.</b> One stop to Jiufen bus, one stop to Yongkang, direct to Ximen.</p>
+    <small>成田便は桃園着なので、パークタイペイの「松山空港直通」は活きません。Day2〜3の移動（永康街・阜杭豆漿・龍山寺・西門）が短く、九份帰りに大浴場で休めるのが決め手。コスパ重視ならロイヤルシーズンズ南西館。</small></div>
+  </div>
+</section>
+
+<!-- HOTELS -->
+<div id="hotels">
+  <div class="sec-head"><span class="mono">(06)</span><h3>Hotels</h3><span class="mono">Click a photo to enlarge</span></div>
+  
+<section class="hotel" id="mitsui">
+  <div class="h-head">
+    <span class="h-num">01</span>
+    <div><span class="mono">大安区・忠孝新生 — 楽天トラベル</span><span class="base mono">Our Pick</span><h3>Mitsui Garden Zhongxiao</h3><div class="jp-name">三井ガーデンホテル台北忠孝</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥58,248</b><span class="mono">Per Person ¥29,124</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>スーペリアツイン（ツインベッド2台）<br><span class="mute">約30㎡（デラックスツイン）</span></dd>
+        <dt>Breakfast +</dt><dd>朝食付 ¥67,864（1人 ¥33,932）</dd>
+        <dt>Breakfast</dt><dd>プランにより選択（朝食付プランあり）</dd>
+        <dt>Station</dt><dd>MRT板南線・中和新蘆線「忠孝新生」3番出口 徒歩約30秒</dd>
+        <dt>Rating</dt><dd>楽天 4.76（128件）</dd>
+        <dt>Note</dt><dd class="mute">【2連泊】プラン 素泊まり 29,124円（1室1泊）。朝食付 33,932円（1室1泊）。デラックスツインは＋約1,800円（1室1泊）。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>駅30秒、2路線使えて台北駅・西門・永康街・九份バスどこへも乗換1回以内</li><li>宿泊者専用の大浴場とラウンジ</li><li>口コミ評価が今回の候補で最高クラス（4.76）</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>今回の候補で最も高い</li><li>夜市は徒歩圏になく電車移動（華西街夜市へは板南線で乗換なし）</li></ul></div></div>
+      <a class="cta mono" href="https://travel.rakuten.co.jp/HOTEL/184309/184309.html" target="_blank" rel="noopener">View on 楽天トラベル →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E5%92%8C%E8%8B%91%E4%B8%89%E4%BA%95%E8%8A%B1%E5%9C%92%E9%A3%AF%E5%BA%97%20%E5%8F%B0%E5%8C%97%E5%BF%A0%E5%AD%9D&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">10 min</span></li><li><span class="mono">Taipei 101</span><span class="m">18 min</span></li><li><span class="mono">Yongkang</span><span class="g">8 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="g">5 min</span></li><li><span class="mono">Ximen</span><span class="g">15 min</span></li><li><span class="mono">Dihua</span><span class="m">20 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:6"><figure class="look" data-h="mitsui" data-j="0" data-cap="ホテル外観" data-tag="外観"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/a80b08ee86aad7b203f5b00baefb681ec1a7f6d1.47.9.26.3.jpg" alt="ホテル外観" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ホテル外観</span></figcaption></figure><figure class="look" data-h="mitsui" data-j="1" data-cap="ツインルーム" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/136348499a653c8c94cd913c302a86aa56d96154.47.9.26.3.jpg" alt="ツインルーム" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>ツインルーム</span></figcaption></figure><figure class="look" data-h="mitsui" data-j="2" data-cap="デラックスツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/5f749797a01a1f780536ddffd8158e8cd4ab6ccc.47.9.26.3.jpg" alt="デラックスツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 部屋</span><span>デラックスツイン</span></figcaption></figure><figure class="look" data-h="mitsui" data-j="3" data-cap="ツインルーム（別タイプ）" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/facf01e3f79589caf9dec3d928bf72caa1e0d1b2.47.9.26.3.jpg" alt="ツインルーム（別タイプ）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 部屋</span><span>ツインルーム（別タイプ）</span></figcaption></figure><figure class="look" data-h="mitsui" data-j="4" data-cap="大浴場" data-tag="施設"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/b9f6d08cc3745c8af3b3d7f6fec9981cab0a87b7.47.9.26.3.jpg" alt="大浴場" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>05 / 施設</span><span>大浴場</span></figcaption></figure><figure class="look" data-h="mitsui" data-j="5" data-cap="宿泊者専用ラウンジ" data-tag="施設"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/6ae7e18760efba9ca081d4035b32ebbb6e7f3087.47.9.26.3.jpg" alt="宿泊者専用ラウンジ" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>06 / 施設</span><span>宿泊者専用ラウンジ</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="rseasons">
+  <div class="h-head">
+    <span class="h-num">02</span>
+    <div><span class="mono">大同区・南京西路 — Expedia</span><h3>Royal Seasons Nanjing W.</h3><div class="jp-name">ロイヤルシーズンズホテル台北 南西館</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥25,363</b><span class="mono">Per Person ¥12,682</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>デラックスツイン（シングルベッド2台）<br><span class="mute">30㎡（エグゼクティブツイン33㎡は2泊 27,778円）</span></dd>
+        
+        <dt>Breakfast</dt><dd>なし（追加可・ビュッフェ）</dd>
+        <dt>Station</dt><dd>MRT「中山」「北門」「大橋頭」いずれも徒歩約10分。迪化街・寧夏夜市 徒歩3分</dd>
+        <dt>Rating</dt><dd>Expedia 8.8/10（1,134件）</dd>
+        <dt>Note</dt><dd class="mute">素泊まり 2泊合計（税・サ込）。朝食はオプション「＋2,092円」の表示（ビュッフェ 7:00〜10:00）。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>30㎡ツインが2泊2.5万円台と圧倒的コスパ</li><li>迪化街・寧夏夜市・大稲埕が徒歩圏</li><li>口コミ評価が高い（8.8）</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>どのMRT駅からも徒歩10分前後</li><li>台北101・永康街方面は25〜30分</li><li>建物はクラシック（重厚な内装）</li></ul></div></div>
+      <a class="cta mono" href="https://www.expedia.co.jp/Taipei-Hotels-Royal-Seasons-Hotel-Taipei.h2510620.Hotel-Information?chkin=2026-11-08&amp;chkout=2026-11-10&amp;rm1=a2" target="_blank" rel="noopener">View on Expedia →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E7%9A%87%E5%AE%B6%E5%AD%A3%E7%AF%80%E9%85%92%E5%BA%97%20%E5%8F%B0%E5%8C%97%E5%8D%97%E8%A5%BF%E9%A4%A8%20%E5%8D%97%E4%BA%AC%E8%A5%BF%E8%B7%AF326%E8%99%9F&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">15 min</span></li><li><span class="mono">Taipei 101</span><span class="b">30 min</span></li><li><span class="mono">Yongkang</span><span class="b">25 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="b">25 min</span></li><li><span class="mono">Ximen</span><span class="g">15 min</span></li><li><span class="mono">Dihua</span><span class="g">3 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:6"><figure class="look" data-h="rseasons" data-j="0" data-cap="ホテル外観（夜）" data-tag="外観"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/52f73251.jpg" alt="ホテル外観（夜）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ホテル外観（夜）</span></figcaption></figure><figure class="look" data-h="rseasons" data-j="1" data-cap="デラックスツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/c86c9da6.jpg" alt="デラックスツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>デラックスツイン</span></figcaption></figure><figure class="look" data-h="rseasons" data-j="2" data-cap="エグゼクティブツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/92b235e9.jpg" alt="エグゼクティブツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 部屋</span><span>エグゼクティブツイン</span></figcaption></figure><figure class="look" data-h="rseasons" data-j="3" data-cap="エグゼクティブツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/b9ec182c.jpg" alt="エグゼクティブツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 部屋</span><span>エグゼクティブツイン</span></figcaption></figure><figure class="look" data-h="rseasons" data-j="4" data-cap="朝食ビュッフェ" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/0945307a.jpg" alt="朝食ビュッフェ" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>05 / 朝食</span><span>朝食ビュッフェ</span></figcaption></figure><figure class="look" data-h="rseasons" data-j="5" data-cap="朝食ビュッフェ会場" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/05616d89.jpg" alt="朝食ビュッフェ会場" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>06 / 朝食</span><span>朝食ビュッフェ会場</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="royalinn">
+  <div class="h-head">
+    <span class="h-num">03</span>
+    <div><span class="mono">中山区・林森北路 — 楽天トラベル</span><h3>Royal Inn Linsen</h3><div class="jp-name">ロイヤルイン台北林森</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥29,972</b><span class="mono">Per Person ¥14,986</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>ビジネスツイン（ツインベッド2台）<br><span class="mute">約27㎡（デラックスツイン約25㎡）</span></dd>
+        <dt>Breakfast +</dt><dd>朝食付 ¥30,970（1人 ¥15,485）</dd>
+        <dt>Breakfast</dt><dd>朝食付プランあり（平日7:00〜9:30）</dd>
+        <dt>Station</dt><dd>MRT板南線「善導寺」1番出口 徒歩約8分／「中山」徒歩約10分（ビル4F）</dd>
+        <dt>Rating</dt><dd>楽天 4.00（202件）</dd>
+        <dt>Note</dt><dd class="mute">【楽天スーパーSALE】ビジネスツイン 素泊まり 14,986円（1室1泊）、朝食付 15,485円（1室1泊）。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>朝食付きでも2泊3.1万円と最安クラス</li><li>24時間日本語対応・日本式サービス</li><li>善導寺の阜杭豆漿、中山の飲食街に近い</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>駅から8〜10分歩く</li><li>雑居ビルの4Fで外観は地味</li><li>評価は他より控えめ（4.00）</li></ul></div></div>
+      <a class="cta mono" href="https://hotel.travel.rakuten.co.jp/overseas/grmPlanList.do?f_no=143091&amp;f_nen1=2026&amp;f_tuki1=11&amp;f_hi1=08&amp;f_nen2=2026&amp;f_tuki2=11&amp;f_hi2=10&amp;f_otona_su=2&amp;f_heya_su=1&amp;f_s1=0&amp;f_y4=0" target="_blank" rel="noopener">View on 楽天トラベル →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E8%80%81%E7%88%BA%E5%95%86%E5%8B%99%E6%9C%83%E9%A4%A8%20%E5%8F%B0%E5%8C%97%E6%9E%97%E6%A3%AE%20%E6%9E%97%E6%A3%AE%E5%8C%97%E8%B7%AF83%E8%99%9F&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">12 min</span></li><li><span class="mono">Taipei 101</span><span class="b">25 min</span></li><li><span class="mono">Yongkang</span><span class="m">20 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="g">15 min</span></li><li><span class="mono">Ximen</span><span class="m">18 min</span></li><li><span class="mono">Dihua</span><span class="g">15 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:6"><figure class="look" data-h="royalinn" data-j="0" data-cap="ビル入口（4Fがフロント）" data-tag="外観"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/05e7218a67e449e57ff02ca3c48e897357e9fb6f.47.9.26.3.jpg" alt="ビル入口（4Fがフロント）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ビル入口（4Fがフロント）</span></figcaption></figure><figure class="look" data-h="royalinn" data-j="1" data-cap="ツインルーム" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/4074b09329e54284976f51358553503a510e0599.47.1.26.2.jpg" alt="ツインルーム" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>ツインルーム</span></figcaption></figure><figure class="look" data-h="royalinn" data-j="2" data-cap="ビジネスツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/461eb4d330a539ec31989eacb47e74b4fd9012de.47.1.26.2.jpg" alt="ビジネスツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 部屋</span><span>ビジネスツイン</span></figcaption></figure><figure class="look" data-h="royalinn" data-j="3" data-cap="デラックスツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/fdbe26dcb12627e666ab45eab7977c56f90eb5f8.47.1.26.2.jpg" alt="デラックスツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 部屋</span><span>デラックスツイン</span></figcaption></figure><figure class="look" data-h="royalinn" data-j="4" data-cap="朝食ビュッフェ" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/6f8666d093869193c6b36f092a326ac13a94b28f.47.1.26.2.jpg" alt="朝食ビュッフェ" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>05 / 朝食</span><span>朝食ビュッフェ</span></figcaption></figure><figure class="look" data-h="royalinn" data-j="5" data-cap="朝食会場・ラウンジ" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/e951ed689d4c88bd16a3e2a0e17f9d87e214c9e7.47.1.26.2.jpg" alt="朝食会場・ラウンジ" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>06 / 朝食</span><span>朝食会場・ラウンジ</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="solaria">
+  <div class="h-head">
+    <span class="h-num">04</span>
+    <div><span class="mono">万華区・西門町 — 楽天トラベル</span><h3>Solaria Nishitetsu Ximen</h3><div class="jp-name">ソラリア西鉄ホテル台北西門</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 朝食込</span><b>¥47,876</b><span class="mono">Per Person ¥23,938</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>シャワーツイン（107cm×2台）<br><span class="mute">21㎡（モデレートツイン24㎡は2泊 49,870円）</span></dd>
+        
+        <dt>Breakfast</dt><dd>あり（ビュッフェ朝食付プラン）</dd>
+        <dt>Station</dt><dd>MRT板南線・松山新店線「西門」6番出口 徒歩約4分</dd>
+        <dt>Rating</dt><dd>楽天 4.79（187件）</dd>
+        <dt>Note</dt><dd class="mute">【楽天スーパーSALE】ビュッフェ朝食付 23,938円（1室1泊）。バスタブなし（シャワーのみ）の部屋。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>西門駅4分。龍山寺1駅、台北駅も徒歩圏</li><li>日系ホテルの安心感・温水洗浄トイレ</li><li>評価が高い（4.79）・朝食込み</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>シャワーツインは21㎡でやや狭い</li><li>九份バス・101へは乗車15〜20分</li></ul></div></div>
+      <a class="cta mono" href="https://hotel.travel.rakuten.co.jp/overseas/grmPlanList.do?f_no=187836&amp;f_nen1=2026&amp;f_tuki1=11&amp;f_hi1=08&amp;f_nen2=2026&amp;f_tuki2=11&amp;f_hi2=10&amp;f_otona_su=2&amp;f_heya_su=1&amp;f_s1=0&amp;f_y4=0" target="_blank" rel="noopener">View on 楽天トラベル →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E7%B4%A2%E6%8B%89%E5%88%A9%E4%BA%9E%E8%A5%BF%E9%90%B5%E9%A3%AF%E5%BA%97%20%E5%8F%B0%E5%8C%97%E8%A5%BF%E9%96%80&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">10 min</span></li><li><span class="mono">Taipei 101</span><span class="b">25 min</span></li><li><span class="mono">Yongkang</span><span class="g">15 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="m">20 min</span></li><li><span class="mono">Ximen</span><span class="g">5 min</span></li><li><span class="mono">Dihua</span><span class="m">20 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:6"><figure class="look" data-h="solaria" data-j="0" data-cap="ホテル外観" data-tag="外観"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/5769fd5a9050688436ca1247f45169b0b6814e45.47.9.26.3.jpg" alt="ホテル外観" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ホテル外観</span></figcaption></figure><figure class="look" data-h="solaria" data-j="1" data-cap="ツインルーム" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/32e4561c16f5eaa07b34ea38820d325a1045fb71.47.9.26.3.jpg" alt="ツインルーム" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>ツインルーム</span></figcaption></figure><figure class="look" data-h="solaria" data-j="2" data-cap="シャワーツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/499356fac3628b8d6fc900035c8311a6578cbe6a.47.9.26.3.jpg" alt="シャワーツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 部屋</span><span>シャワーツイン</span></figcaption></figure><figure class="look" data-h="solaria" data-j="3" data-cap="モデレートツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/1d1857d6a7627804caf01f19e82f1eb913581f55.47.9.26.3.jpg" alt="モデレートツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 部屋</span><span>モデレートツイン</span></figcaption></figure><figure class="look" data-h="solaria" data-j="4" data-cap="レストラン（朝食会場）" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/23ad0a99b2f9bb009ed9389bad3a4eadd5e37dd1.47.9.26.3.jpg" alt="レストラン（朝食会場）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>05 / 朝食</span><span>レストラン（朝食会場）</span></figcaption></figure><figure class="look" data-h="solaria" data-j="5" data-cap="ロビー" data-tag="施設"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/8edc3fc044664b45746514ab7cde98efa41d3be2.47.9.26.3.jpg" alt="ロビー" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>06 / 施設</span><span>ロビー</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="park">
+  <div class="h-head">
+    <span class="h-num">05</span>
+    <div><span class="mono">大安区・復興南路 — 楽天トラベル</span><h3>Park Taipei</h3><div class="jp-name">パークタイペイホテル</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥49,372</b><span class="mono">Per Person ¥24,686</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>スーペリアツイン（110cm×2台）<br><span class="mute">約32㎡（101ビューツイン33㎡は2泊 58,348円）</span></dd>
+        
+        <dt>Breakfast</dt><dd>なし（素泊まりプラン）</dd>
+        <dt>Station</dt><dd>MRT文湖線「大安」6番出口 徒歩約10秒（信義線も利用可）</dd>
+        <dt>Rating</dt><dd>楽天 4.19〜4.38（905件）</dd>
+        <dt>Note</dt><dd class="mute">【楽天スーパーSALE】素泊まり 24,686円（1室1泊）。朝食付プランの表示なし。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>台北101まで信義線で2駅、九份バスの忠孝復興まで1駅</li><li>32㎡とゆったり・全室バスタブ</li><li>松山空港へ乗換なし約8分</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>素泊まりで2泊4.9万円と割高</li><li>西門・龍山寺・迪化街など西側は遠め</li></ul></div></div>
+      <a class="cta mono" href="https://hotel.travel.rakuten.co.jp/overseas/grmPlanList.do?f_no=198077&amp;f_nen1=2026&amp;f_tuki1=11&amp;f_hi1=08&amp;f_nen2=2026&amp;f_tuki2=11&amp;f_hi2=10&amp;f_otona_su=2&amp;f_heya_su=1&amp;f_s1=0&amp;f_y4=0" target="_blank" rel="noopener">View on 楽天トラベル →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E5%8F%B0%E5%8C%97%E7%BE%8E%E4%BE%96%E5%A4%A7%E9%A3%AF%E5%BA%97&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">15 min</span></li><li><span class="mono">Taipei 101</span><span class="g">8 min</span></li><li><span class="mono">Yongkang</span><span class="g">12 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="g">5 min</span></li><li><span class="mono">Ximen</span><span class="b">25 min</span></li><li><span class="mono">Dihua</span><span class="b">25 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:4"><figure class="look" data-h="park" data-j="0" data-cap="ホテル外観" data-tag="外観"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/d3951c5f1c506fb5d56f79a9365ec78a3762d0dd.47.9.26.3.jpg" alt="ホテル外観" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ホテル外観</span></figcaption></figure><figure class="look" data-h="park" data-j="1" data-cap="スーペリアツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/8355c18c84aaf003e3c129a0eb1c63699087a7d1.47.9.26.3.jpg" alt="スーペリアツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>スーペリアツイン</span></figcaption></figure><figure class="look" data-h="park" data-j="2" data-cap="ガーデン（2F）" data-tag="施設"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/18c4c20c275cd9cde5d5181a71b2c0f611cb28a2.47.9.26.3.jpg" alt="ガーデン（2F）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 施設</span><span>ガーデン（2F）</span></figcaption></figure><figure class="look" data-h="park" data-j="3" data-cap="VIPラウンジ" data-tag="施設"><div class="frame"><img loading="lazy" src="https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/2b6e8de88977cc9ad40b9d40d602b703b34bdfbe.47.9.26.3.jpg" alt="VIPラウンジ" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 施設</span><span>VIPラウンジ</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="b7">
+  <div class="h-head">
+    <span class="h-num">06</span>
+    <div><span class="mono">中正区・台北駅南 — Expedia</span><h3>Hotel B7 Journey</h3><div class="jp-name">ビューティーホテルズ台北 B7ジャーニー</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥24,615</b><span class="mono">Per Person ¥12,308</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>スーペリアツイン シティビュー（シングルベッド2台）<br><span class="mute">13㎡</span></dd>
+        
+        <dt>Breakfast</dt><dd>なし（追加可）</dd>
+        <dt>Station</dt><dd>MRT淡水信義線「台大醫院」徒歩約5分／台北駅 徒歩約7分</dd>
+        <dt>Rating</dt><dd>Expedia 7.6/10（598件）</dd>
+        <dt>Note</dt><dd class="mute">素泊まり 2泊合計（税・サ込）。朝食はオプション「＋799円」の表示（洋食・中華、7:30〜11:00）。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>台北駅（空港MRT）に徒歩7分、西門町も徒歩圏</li><li>2泊2.4万円台で最安クラス</li><li>信義線1本で101・永康街へ</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>ツインは13㎡でかなり狭い（スーツケース2個広げるのは厳しい）</li><li>評価は7.6と平凡</li></ul></div></div>
+      <a class="cta mono" href="https://www.expedia.co.jp/Taipei-Hotels-Beauty-Hotels-Taipei-Hotel-B7-Journey.h12006065.Hotel-Information?chkin=2026-11-08&amp;chkout=2026-11-10&amp;rm1=a2" target="_blank" rel="noopener">View on Expedia →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E5%8F%B0%E5%8C%97%E6%95%98%E7%BE%8E%E8%A1%8C%E6%97%85%20%E9%87%8D%E6%85%B6%E5%8D%97%E8%B7%AF%E4%B8%80%E6%AE%B594%E8%99%9F&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">7 min</span></li><li><span class="mono">Taipei 101</span><span class="m">20 min</span></li><li><span class="mono">Yongkang</span><span class="g">12 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="g">15 min</span></li><li><span class="mono">Ximen</span><span class="g">10 min</span></li><li><span class="mono">Dihua</span><span class="m">20 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:6"><figure class="look" data-h="b7" data-j="0" data-cap="ホテル外観（夜）" data-tag="外観"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/d2104ed0.jpg" alt="ホテル外観（夜）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 外観</span><span>ホテル外観（夜）</span></figcaption></figure><figure class="look" data-h="b7" data-j="1" data-cap="スーペリアツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/4301d910.jpg" alt="スーペリアツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>02 / 部屋</span><span>スーペリアツイン</span></figcaption></figure><figure class="look" data-h="b7" data-j="2" data-cap="スーペリアツイン" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/86935d61.jpg" alt="スーペリアツイン" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>03 / 部屋</span><span>スーペリアツイン</span></figcaption></figure><figure class="look" data-h="b7" data-j="3" data-cap="スーペリアツイン（水回り）" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/c04b8ca4.jpg" alt="スーペリアツイン（水回り）" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>04 / 部屋</span><span>スーペリアツイン（水回り）</span></figcaption></figure><figure class="look" data-h="b7" data-j="4" data-cap="朝食" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/2becd7ba.jpg" alt="朝食" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>05 / 朝食</span><span>朝食</span></figcaption></figure><figure class="look" data-h="b7" data-j="5" data-cap="朝食" data-tag="朝食"><div class="frame"><img loading="lazy" src="https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/44c30b78.jpg" alt="朝食" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>06 / 朝食</span><span>朝食</span></figcaption></figure></div>
+</section>
+<section class="hotel" id="airbnb">
+  <div class="h-head">
+    <span class="h-num">07</span>
+    <div><span class="mono">万華区・西門（中山駅付近は条件に合う物件が少なめ） — Airbnb</span><h3>Airbnb Ximen</h3><div class="jp-name">Airbnb（参考）西門・シングルベッド2台の部屋</div></div>
+    <div class="h-price"><span class="mono">2 Pax / 2 Nights — 素泊まり</span><b>¥14,872</b><span class="mono">Per Person ¥7,436</span></div>
+  </div>
+  <div class="h-body">
+    <div class="h-info">
+      <dl>
+        <dt>Room</dt><dd>1LDK相当（シングルベッド2台）<br><span class="mute">—</span></dd>
+        
+        <dt>Breakfast</dt><dd>なし</dd>
+        <dt>Station</dt><dd>MRT「西門」徒歩約5分（400m）・エレベーター付き</dd>
+        <dt>Rating</dt><dd>レビュー365件・スーパーホスト</dd>
+        <dt>Note</dt><dd class="mute">2泊合計（2名・手数料込み表示）。</dd>
+      </dl>
+      <div class="scores mono"><div>Access <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></span></div><div>Price <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div>Room <span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></span></div></div>
+      <div class="pc"><div><span class="mono">+ Pros</span><ul><li>2泊1.5万円と圧倒的に安い</li><li>西門の繁華街ど真ん中</li></ul></div>
+      <div><span class="mono">− Cons</span><ul><li>台湾は無許可の短期貸しが多く、トラブル時の保証が弱い（「合法民宿」の登録番号の有無を要確認）</li><li>フロントなし・清掃なし・荷物預かり不可が多い</li></ul></div></div>
+      <a class="cta mono" href="https://www.airbnb.jp/rooms/18676657?adults=2&amp;check_in=2026-11-08&amp;check_out=2026-11-10" target="_blank" rel="noopener">View on Airbnb →</a>
+    </div>
+    <div class="h-map">
+      <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=%E5%8F%B0%E5%8C%97%E5%B8%82%E8%90%AC%E8%8F%AF%E5%8D%80%20%E8%A5%BF%E9%96%80%E7%AB%99&amp;hl=ja&amp;z=16&amp;output=embed"></iframe>
+      <ul class="access"><li><span class="mono">Taipei Main</span><span class="g">12 min</span></li><li><span class="mono">Taipei 101</span><span class="b">25 min</span></li><li><span class="mono">Yongkang</span><span class="g">15 min</span></li><li><span class="mono">Zhongxiao Fuxing</span><span class="m">20 min</span></li><li><span class="mono">Ximen</span><span class="g">5 min</span></li><li><span class="mono">Dihua</span><span class="m">20 min</span></li></ul>
+    </div>
+  </div>
+  <div class="looks" style="--n:4"><figure class="look" data-h="airbnb" data-j="0" data-cap="リスティング写真" data-tag="部屋"><div class="frame"><img loading="lazy" src="https://a0.muscache.com/im/pictures/hosting/Hosting-18676657/original/706af066-6734-4e9a-abd0-bd6602fa9691.jpeg?im_w=720" alt="リスティング写真" onerror="this.closest('figure').remove()"></div><figcaption class="cap mono"><span>01 / 部屋</span><span>リスティング写真</span></figcaption></figure></div>
+</section>
+</div>
+
+<!-- WISHLIST -->
+<section id="wish">
+  <div class="sec-head"><span class="mono">(07)</span><h3>Wishlist</h3><span class="mono">7 Things To Do — Mapped To Plan</span></div>
+  <div class="wishes"><div class="wish"><span class="w-ic">🥭</span><span class="mono">Day 3 — 10:15</span><h4>Mango Ice</h4><div class="w-jp">マンゴーかき氷</div><div class="w-where"><span class="mono">Where</span><b>思慕昔（永康街）</b></div><p>旬は6〜7月。11月は冬季休業の店（冰讚など）もあるので、冷凍マンゴーで通年営業の思慕昔に。</p></div><div class="wish"><span class="w-ic">🍍</span><span class="mono">Day 3 — 12:00</span><h4>Pineapple Cake</h4><div class="w-jp">パイナップルケーキ</div><div class="w-where"><span class="mono">Where</span><b>李製餅家（中山）</b></div><p>微熱山丘（SunnyHills）は日本にも店舗があるので、日本にない老舗を。佳徳（南京三民）・犂記（松江南京）も候補。</p></div><div class="wish"><span class="w-ic">🍚</span><span class="mono">Day 3 — 12:15</span><h4>Lu Rou Fan</h4><div class="w-jp">ルーローファン／台湾料理</div><div class="w-where"><span class="mono">Where</span><b>青葉 中山店</b></div><p>座って食べられる台湾料理の老舗レストラン。魯肉・菜脯蛋が看板。予約しておくと安心。</p></div><div class="wish"><span class="w-ic">🥟</span><span class="mono">Day 1 — 16:30</span><h4>Xiao Long Bao</h4><div class="w-jp">小籠包</div><div class="w-where"><span class="mono">Where</span><b>鼎泰豐 台北101店</b></div><p>101観光とセット。夕食ピーク前に行くか、先に番号札を取って展望台へ。</p></div><div class="wish"><span class="w-ic">🏮</span><span class="mono">Day 2 — 10:30</span><h4>Sky Lantern</h4><div class="w-jp">ランタン（天燈）上げ</div><div class="w-where"><span class="mono">Where</span><b>十分老街</b></div><p>線路の上から願い事を書いたランタンを飛ばす。</p></div><div class="wish"><span class="w-ic">⛰</span><span class="mono">Day 2 — 終日</span><h4>Shifen × Jiufen</h4><div class="w-jp">十分・九份</div><div class="w-where"><span class="mono">Where</span><b>十分瀑布／九份老街</b></div><p>十分＝ランタンと滝とローカル線。九份＝山の斜面の石段と提灯の街。夕暮れ〜夜が本番。</p></div><div class="wish"><span class="w-ic">🌃</span><span class="mono">Day 1 — 19:30</span><h4>Night Market</h4><div class="w-jp">夜市</div><div class="w-where"><span class="mono">Where</span><b>華西街・廣州街夜市</b></div><p>龍山寺のすぐ横。時間があれば寧夏夜市（中山）や饒河街夜市（松山）も。</p></div><div class="wish"><span class="w-ic">✓</span><span class="mono">Before Trip</span><h4>To Book</h4><div class="w-jp">事前にやること</div><div class="w-where"><span class="mono">Where</span><b>予約・確認リスト</b></div><p>青葉は公式HPから日本語で5〜7日前までに予約。鼎泰豐はKlook・KKdayの事前購入で待ち時間短縮も可。平渓線の時刻表と、思慕昔の開店時間をチェック。</p></div></div>
+</section>
+
+<!-- ITINERARY -->
+<section id="plan">
+  <div class="sec-head"><span class="mono">(08)</span><h3>Itinerary</h3><span class="mono">Base — Zhongxiao Xinsheng</span></div>
+  <div class="statement">
+    <span class="mono">Note</span>
+    <p class="big">Tower to temple on day one, lanterns and hillside lights on day two, old streets on the way out.</p>
+    <p class="jp">11月の台北は最高気温24℃前後で過ごしやすい一方、九份は北東季節風の影響で雨が多い時期なので折りたたみ傘があると安心。友達の案（Day1 101→龍山寺・西門町→夜市／Day2 十分→九份／Day3 朝食→中正紀念堂・迪化街）をベースに、フライト時刻と三井ガーデン忠孝（MRT忠孝新生駅）発着で時間を割り振っています。</p>
+  </div>
+  <div class="days"><div class="day"><div class="day-h"><span class="mono">Day 01 — 11.08 SUN</span><h4>101 — Din Tai Fung — Night Market</h4><span class="jp-sub">台北101・鼎泰豐 → 西門町・龍山寺 → 夜市</span></div><ol><li><span class="t mono">11:50</span><div><b>桃園空港着 → 入国・悠遊カード購入</b><small>入国審査〜荷物受取で30〜60分。悠遊カード（EasyCard）はMRT・バス・コンビニ全部これ1枚。</small></div></li><li><span class="t mono">12:50</span><div><b>空港MRT（快速）で台北駅へ</b><small>約35〜40分。台北駅で軽めのランチ（夕方に鼎泰豐があるので控えめに）。</small></div></li><li><span class="t mono">14:30</span><div><b>ホテルに荷物を置く（板南線2駅・忠孝新生）</b><small>チェックイン前でもフロントで荷物は預けられるのが一般的。</small></div></li><li><span class="t mono">15:15</span><div><b>台北101 展望台（89F）</b><small>板南線で市政府駅→徒歩約10分。</small></div></li><li><span class="t mono">16:30</span><div><b>🥟 鼎泰豐 台北101店で小籠包</b><small>101のB1。夕食ピーク前が狙い目。着いたらまず番号札を取り、待ち時間に展望台へ行く手も。</small></div></li><li><span class="t mono">18:00</span><div><b>西門町</b><small>市政府→西門は板南線で乗換なし約15分。</small></div></li><li><span class="t mono">18:45</span><div><b>龍山寺（夜のライトアップ）</b><small>西門から1駅 or 徒歩15分。</small></div></li><li><span class="t mono">19:30</span><div><b>🏮 夜市：華西街観光夜市・廣州街夜市</b><small>龍山寺のすぐ横で食べ歩き。帰りは龍山寺駅→忠孝新生まで乗換なし約12分。</small></div></li></ol></div><div class="day"><div class="day-h"><span class="mono">Day 02 — 11.09 MON</span><h4>Shifen Lanterns — Jiufen Night</h4><span class="jp-sub">十分で天燈上げ → 九份 → 夕方〜夜の九份</span></div><ol><li><span class="t mono">8:45</span><div><b>台北駅から台鉄で瑞芳駅へ</b><small>約40〜50分。悠遊カードで乗れる。</small></div></li><li><span class="t mono">9:45</span><div><b>瑞芳で平渓線に乗換 → 十分駅</b><small>約30分。平渓線は約1時間に1本なので時刻表を事前チェック。</small></div></li><li><span class="t mono">10:30</span><div><b>🏮 十分老街でランタン（天燈）上げ</b><small>線路沿いの店でランタンを買い、4面に願い事を書いて線路の上から飛ばす。色ごとに願いの意味が違う。</small></div></li><li><span class="t mono">11:30</span><div><b>十分瀑布</b><small>「台湾のナイアガラ」と呼ばれる幅の広い滝。駅から徒歩約20分、9:00〜16:30。</small></div></li><li><span class="t mono">13:00</span><div><b>平渓線で瑞芳へ戻る → バス/タクシーで九份</b><small>瑞芳→九份はバス約20分、タクシーなら10〜15分。</small></div></li><li><span class="t mono">14:30</span><div><b>九份老街で食べ歩き</b><small>山の斜面に張り付いた細い石段と路地の街。芋圓（タロイモ団子）が名物。</small></div></li><li><span class="t mono">17:00</span><div><b>夕方〜夜の九份・阿妹茶樓の提灯</b><small>日没17:10頃。赤い提灯が灯る豎崎路の石段が一番の見どころ。茶藝館で海を見ながらお茶も。</small></div></li><li><span class="t mono">19:30</span><div><b>1062番バスで台北へ（約70〜90分）</b><small>忠孝復興駅で降りればホテルまで1駅。帰りは行列になるのでタクシー相乗りも手。</small></div></li></ol></div><div class="day"><div class="day-h"><span class="mono">Day 03 — 11.10 TUE</span><h4>Breakfast — Mango — Souvenirs</h4><span class="jp-sub">朝食 → 中正紀念堂・マンゴーかき氷 → 迪化街・台湾料理 → 空港</span></div><ol><li><span class="t mono">7:30</span><div><b>阜杭豆漿で台湾朝ごはん</b><small>善導寺駅（1駅 or 徒歩10分）。厚餅夾蛋と鹹豆漿。30分程度並ぶ覚悟で。</small></div></li><li><span class="t mono">8:45</span><div><b>ホテルでチェックアウト・荷物を預ける</b></div></li><li><span class="t mono">9:30</span><div><b>中正紀念堂</b><small>衛兵交代は毎時0分。忠孝新生→東門乗換で約10分。</small></div></li><li><span class="t mono">10:15</span><div><b>🥭 永康街「思慕昔」でマンゴーかき氷</b><small>中正紀念堂から徒歩約10分（東門駅すぐ）。冷凍マンゴーを使うので11月でも食べられる。開店時間は要確認。</small></div></li><li><span class="t mono">11:00</span><div><b>迪化街でお土産</b><small>乾物・お茶・からすみ・布製品など。</small></div></li><li><span class="t mono">12:00</span><div><b>🍍 李製餅家（中山）でパイナップルケーキ</b><small>基隆発祥の老舗、台北店は中山駅から徒歩7〜8分。1個からバラ買いOK。</small></div></li><li><span class="t mono">12:15</span><div><b>🍚 青葉 中山店で台湾料理ランチ</b><small>台湾料理の老舗レストラン。名物の魯肉（豚の角煮）、菜脯蛋（切干大根の卵焼き）、ルーローファンなど。HPから日本語で5〜7日前まで予約可。</small></div></li><li><span class="t mono">13:15</span><div><b>ホテルで荷物ピックアップ → 台北駅</b><small>中山→松江南京乗換→忠孝新生 約10分、忠孝新生→台北駅 約5分。</small></div></li><li><span class="t mono">13:45</span><div><b>空港MRT快速で桃園空港へ</b><small>約40分。T1/T2で駅が違うのでピーチの出発ターミナルを事前確認。</small></div></li><li><span class="t mono">14:40</span><div><b>空港着・チェックイン</b><small>LCCはカウンター締切が早め（出発50分前目安）。</small></div></li><li><span class="t mono">17:10</span><div><b>ピーチで成田へ（21:25着）</b></div></li></ol></div></div>
+</section>
+
+<footer>
+  <div class="col mono"><span>Taipei Trip</span><span class="mute">11.08 — 11.10.2026</span></div>
+  <div class="col mono"><span>Sources</span><span class="mute">Rakuten Travel / Expedia / Airbnb</span></div>
+  <div class="col mono"><span>Prices</span><span class="mute">As of 09.27.2026</span></div>
+  <div class="col mono" style="text-align:right"><a href="#">Back to top ↑</a></div>
+  <div class="fin">SEE YOU IN TAIPEI</div>
+</footer>
+
+<div class="lb" id="lb">
+  <div class="pic" id="lbPic"><img alt=""></div>
+  <div class="info">
+    <div style="display:flex;justify-content:space-between" class="mono"><span id="lbIdx"></span><a href="#" id="lbClose">Close ✕</a></div>
+    <h5 id="lbNum"></h5>
+    <div class="nm" id="lbName"></div>
+    <dl><dt>Hotel</dt><dd id="lbJp"></dd><dt>Type</dt><dd id="lbTag"></dd><dt>Photo</dt><dd id="lbCap"></dd></dl>
+    <div class="ctrl"><button id="lbPrev">← PREV</button><button id="lbNext">NEXT →</button></div>
+  </div>
+</div>
+
+<script>
+/* lightbox */
+const P={"mitsui": {"name": "Mitsui Garden Zhongxiao", "jp": "三井ガーデンホテル台北忠孝", "photos": [["外観", "ホテル外観", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/a80b08ee86aad7b203f5b00baefb681ec1a7f6d1.47.9.26.3.jpg"], ["部屋", "ツインルーム", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/136348499a653c8c94cd913c302a86aa56d96154.47.9.26.3.jpg"], ["部屋", "デラックスツイン", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/5f749797a01a1f780536ddffd8158e8cd4ab6ccc.47.9.26.3.jpg"], ["部屋", "ツインルーム（別タイプ）", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/facf01e3f79589caf9dec3d928bf72caa1e0d1b2.47.9.26.3.jpg"], ["施設", "大浴場", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/b9f6d08cc3745c8af3b3d7f6fec9981cab0a87b7.47.9.26.3.jpg"], ["施設", "宿泊者専用ラウンジ", "https://img.travel.rakuten.co.jp/share/image_up/184309/LARGE/6ae7e18760efba9ca081d4035b32ebbb6e7f3087.47.9.26.3.jpg"]]}, "rseasons": {"name": "Royal Seasons Nanjing W.", "jp": "ロイヤルシーズンズホテル台北 南西館", "photos": [["外観", "ホテル外観（夜）", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/52f73251.jpg"], ["部屋", "デラックスツイン", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/c86c9da6.jpg"], ["部屋", "エグゼクティブツイン", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/92b235e9.jpg"], ["部屋", "エグゼクティブツイン", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/b9ec182c.jpg"], ["朝食", "朝食ビュッフェ", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/0945307a.jpg"], ["朝食", "朝食ビュッフェ会場", "https://images.trvl-media.com/lodging/3000000/2520000/2510700/2510620/05616d89.jpg"]]}, "royalinn": {"name": "Royal Inn Linsen", "jp": "ロイヤルイン台北林森", "photos": [["外観", "ビル入口（4Fがフロント）", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/05e7218a67e449e57ff02ca3c48e897357e9fb6f.47.9.26.3.jpg"], ["部屋", "ツインルーム", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/4074b09329e54284976f51358553503a510e0599.47.1.26.2.jpg"], ["部屋", "ビジネスツイン", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/461eb4d330a539ec31989eacb47e74b4fd9012de.47.1.26.2.jpg"], ["部屋", "デラックスツイン", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/fdbe26dcb12627e666ab45eab7977c56f90eb5f8.47.1.26.2.jpg"], ["朝食", "朝食ビュッフェ", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/6f8666d093869193c6b36f092a326ac13a94b28f.47.1.26.2.jpg"], ["朝食", "朝食会場・ラウンジ", "https://img.travel.rakuten.co.jp/share/image_up/143091/LARGE/e951ed689d4c88bd16a3e2a0e17f9d87e214c9e7.47.1.26.2.jpg"]]}, "solaria": {"name": "Solaria Nishitetsu Ximen", "jp": "ソラリア西鉄ホテル台北西門", "photos": [["外観", "ホテル外観", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/5769fd5a9050688436ca1247f45169b0b6814e45.47.9.26.3.jpg"], ["部屋", "ツインルーム", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/32e4561c16f5eaa07b34ea38820d325a1045fb71.47.9.26.3.jpg"], ["部屋", "シャワーツイン", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/499356fac3628b8d6fc900035c8311a6578cbe6a.47.9.26.3.jpg"], ["部屋", "モデレートツイン", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/1d1857d6a7627804caf01f19e82f1eb913581f55.47.9.26.3.jpg"], ["朝食", "レストラン（朝食会場）", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/23ad0a99b2f9bb009ed9389bad3a4eadd5e37dd1.47.9.26.3.jpg"], ["施設", "ロビー", "https://img.travel.rakuten.co.jp/share/image_up/187836/LARGE/8edc3fc044664b45746514ab7cde98efa41d3be2.47.9.26.3.jpg"]]}, "park": {"name": "Park Taipei", "jp": "パークタイペイホテル", "photos": [["外観", "ホテル外観", "https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/d3951c5f1c506fb5d56f79a9365ec78a3762d0dd.47.9.26.3.jpg"], ["部屋", "スーペリアツイン", "https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/8355c18c84aaf003e3c129a0eb1c63699087a7d1.47.9.26.3.jpg"], ["施設", "ガーデン（2F）", "https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/18c4c20c275cd9cde5d5181a71b2c0f611cb28a2.47.9.26.3.jpg"], ["施設", "VIPラウンジ", "https://img.travel.rakuten.co.jp/share/image_up/198077/LARGE/2b6e8de88977cc9ad40b9d40d602b703b34bdfbe.47.9.26.3.jpg"]]}, "b7": {"name": "Hotel B7 Journey", "jp": "ビューティーホテルズ台北 B7ジャーニー", "photos": [["外観", "ホテル外観（夜）", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/d2104ed0.jpg"], ["部屋", "スーペリアツイン", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/4301d910.jpg"], ["部屋", "スーペリアツイン", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/86935d61.jpg"], ["部屋", "スーペリアツイン（水回り）", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/c04b8ca4.jpg"], ["朝食", "朝食", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/2becd7ba.jpg"], ["朝食", "朝食", "https://images.trvl-media.com/lodging/13000000/12010000/12006100/12006065/44c30b78.jpg"]]}, "airbnb": {"name": "Airbnb Ximen", "jp": "Airbnb（参考）西門・シングルベッド2台の部屋", "photos": [["部屋", "リスティング写真", "https://a0.muscache.com/im/pictures/hosting/Hosting-18676657/original/706af066-6734-4e9a-abd0-bd6602fa9691.jpeg?im_w=720"]]}};
+const lb=document.getElementById('lb');let cur={h:null,j:0};
+function openLb(h,j){const list=P[h].photos;cur={h,j:(j+list.length)%list.length};const p=list[cur.j];
+  document.querySelector('#lbPic img').src=p[2];
+  document.getElementById('lbIdx').textContent=`${cur.j+1} / ${list.length}`;
+  document.getElementById('lbNum').textContent=String(cur.j+1).padStart(2,'0');
+  document.getElementById('lbName').textContent=P[h].name;
+  document.getElementById('lbJp').textContent=P[h].jp;
+  document.getElementById('lbTag').textContent=p[0];
+  document.getElementById('lbCap').textContent=p[1];
+  lb.classList.add('on');}
+document.addEventListener('click',e=>{const f=e.target.closest('.look');if(f)openLb(f.dataset.h,+f.dataset.j)});
+document.getElementById('lbClose').onclick=e=>{e.preventDefault();lb.classList.remove('on')};
+document.getElementById('lbPrev').onclick=()=>openLb(cur.h,cur.j-1);
+document.getElementById('lbNext').onclick=()=>openLb(cur.h,cur.j+1);
+document.getElementById('lbPic').onclick=()=>openLb(cur.h,cur.j+1);
+addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;
+  if(e.key==='Escape')lb.classList.remove('on');if(e.key==='ArrowRight')openLb(cur.h,cur.j+1);if(e.key==='ArrowLeft')openLb(cur.h,cur.j-1);});
+let tx=null;lb.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+lb.addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)openLb(cur.h,cur.j+(dx<0?1:-1));tx=null});
+
+/* overview map */
+const M=[{"n": 1, "id": "mitsui", "name": "Mitsui Garden Zhongxiao", "lat": 25.0421, "lng": 121.5333, "p": "¥58,248", "pp": "¥29,124"}, {"n": 2, "id": "rseasons", "name": "Royal Seasons Nanjing W.", "lat": 25.0536, "lng": 121.5108, "p": "¥25,363", "pp": "¥12,682"}, {"n": 3, "id": "royalinn", "name": "Royal Inn Linsen", "lat": 25.0487, "lng": 121.5256, "p": "¥29,972", "pp": "¥14,986"}, {"n": 4, "id": "solaria", "name": "Solaria Nishitetsu Ximen", "lat": 25.0441, "lng": 121.5086, "p": "¥47,876", "pp": "¥23,938"}, {"n": 5, "id": "park", "name": "Park Taipei", "lat": 25.0331, "lng": 121.5436, "p": "¥49,372", "pp": "¥24,686"}, {"n": 6, "id": "b7", "name": "Hotel B7 Journey", "lat": 25.0441, "lng": 121.5127, "p": "¥24,615", "pp": "¥12,308"}, {"n": 7, "id": "airbnb", "name": "Airbnb Ximen", "lat": 25.0405, "lng": 121.5055, "p": "¥14,872", "pp": "¥7,436"}];
+if(window.L){
+  const map=L.map('overview',{scrollWheelZoom:false});
+  const g=L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ja&gl=JP&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:'0123',attribution:'Map data © Google'});
+  const c=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'});
+  g.addTo(map);L.control.layers({'Google（日本語）':g,'CARTO（予備）':c},null,{collapsed:true}).addTo(map);
+  const pts=[];
+  M.forEach(h=>{L.marker([h.lat,h.lng],{zIndexOffset:1000,icon:L.divIcon({className:'',html:`<span class="pin${h.id==='mitsui'?' best':''}">${String(h.n).padStart(2,'0')}</span>`,iconSize:[30,30],iconAnchor:[15,15]})})
+    .addTo(map).bindPopup(`<b>${h.name}</b><br>2P ${h.p} / 1P ${h.pp}<br><a href="#${h.id}">→ Detail</a>`);pts.push([h.lat,h.lng])});
+  [['台北101・鼎泰豐','#2563eb',25.0340,121.5645],['西門町','#2563eb',25.0422,121.5079],['龍山寺','#2563eb',25.0372,121.4999],['華西街・廣州街夜市','#2563eb',25.0366,121.4975],
+   ['1062バス（忠孝復興）','#e8572a',25.0416,121.5439],
+   ['阜杭豆漿','#7c3aed',25.0443,121.5249],['中正紀念堂','#7c3aed',25.0346,121.5217],['思慕昔（マンゴーかき氷）','#7c3aed',25.0331,121.5299],['青葉 中山店・李製餅家','#7c3aed',25.0513,121.5238],['迪化街','#7c3aed',25.0560,121.5100],
+   ['台北駅（空港MRT・台鉄）','#555',25.0478,121.5170]].forEach(s=>{
+    L.circleMarker([s[2],s[3]],{radius:7,color:'#121212',weight:1.5,fillColor:s[1],fillOpacity:1}).addTo(map).bindTooltip(s[0],{direction:'top'});pts.push([s[2],s[3]])});
+  map.fitBounds(pts,{padding:[24,24]});
+}else{document.getElementById('overview').innerHTML='<p class="mono" style="padding:24px">Map library failed to load (offline).</p>'}
+</script>
+</body>
+</html>
